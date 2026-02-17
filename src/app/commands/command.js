@@ -21,4 +21,6 @@ export default class BaseCommand {
       `'Run' has not been implemented by ${this.constructor.name}`
     );
   };
+
+  RunAsync = undefined;
 }

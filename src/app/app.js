@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 
 export default class App {
@@ -17,10 +18,10 @@ export default class App {
     this.Commands = commands;
   }
 
-  Run = () => {
+  RunAsync = async () => {
     this.Program.name('invoiceninja-payment-translator')
       .description(
-        'A CLI tool to help translate bank transaction CSV files to Invoiceninja payments'
+        'A CLI tool to help translate bank transaction csv files to the formats that Invoiceninja requires'
       )
       .version(this.Config.version);
 
@@ -32,12 +33,19 @@ export default class App {
       for (const { name, description } of command.Arguments)
         cmd.argument(name, description);
 
-      for (const { name, description, value } of command.Options)
-        cmd.option(name, description, value);
+      for (const { name, description, value, required } of command.Options) {
+        if (required) cmd.requiredOption(name, description, value);
+        else cmd.option(name, description, value);
+      }
 
-      cmd.action(command.Run);
+      if (command.RunAsync) cmd.action(command.RunAsync);
+      else cmd.action(command.Run);
     }
 
-    this.Program.parse();
+    try {
+      await this.Program.parseAsync();
+    } catch (error) {
+      console.error(chalk.red(error));
+    }
   };
 }
