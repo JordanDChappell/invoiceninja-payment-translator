@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import InvoiceNinjaClient from '../http/invoiceNinjaClient.js';
 import BaseCommand from './command.js';
 
@@ -55,7 +56,11 @@ export default class PaymentCommand extends BaseCommand {
       const [day, month, year] = dateColumn.split('/');
 
       entries.push({
-        date: new Date(year, month, day),
+        date: new Date(
+          Number.parseInt(year, 10),
+          Number.parseInt(month, 10) - 1,
+          Number.parseInt(day, 10)
+        ),
         amount: Number.parseFloat(amountColumn),
         reference: referenceColumn.toLowerCase(),
       });
@@ -85,6 +90,7 @@ export default class PaymentCommand extends BaseCommand {
 
       const paymentIndex = candidatePayments.findIndex(
         (payment) =>
+          payment.reference.includes(invoice.number) ||
           payment.reference.includes(client.name.toLowerCase()) ||
           client.contacts.some(
             (contact) =>
@@ -108,12 +114,20 @@ export default class PaymentCommand extends BaseCommand {
     for (const { client, invoice, payment } of paymentsWithInvoiceAndClient) {
       if (!payment) continue;
 
+      console.info(
+        chalk.yellow(
+          `New payment fowund: #${invoice.number} - ${client.name} - \$${payment.amount}`
+        )
+      );
+
       await this._invoiceNinjaClient.CreatePaymentAsync(
         client.id,
         invoice.id,
         payment.amount,
         payment.date.toISOString().split('T')[0]
       );
+
+      console.info(chalk.green('Payment marked as paid'));
     }
   };
 }

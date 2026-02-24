@@ -49,7 +49,8 @@ export default class InvoiceNinjaClient {
 
   GetUnpaidClientsAsync = async () => {
     const url = this.GetFullUrl('clients?status=active&balance_gt=0');
-    return await this.GetJsonAsync(url);
+    const response = await this.GetJsonAsync(url);
+    return { data: response.data.filter((c) => c.balance > 0) }; // Invoice Ninja API fail...
   };
 
   GetOpenInvoicesAsync = async () => {
